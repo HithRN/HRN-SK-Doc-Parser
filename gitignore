@@ -1,0 +1,8 @@
+# Never commit your actual API keys
+.env
+.env.local
+.env.production
+
+# Vercel internals
+.vercel
+node_modules
