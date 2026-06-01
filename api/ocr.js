@@ -15,7 +15,7 @@
  *   GEMINI_API_KEY   your Google AI Studio API key
  */
 
-const GEMINI_MODEL = 'gemini-2.5-pro';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 export default async function handler(req, res) {
   // ── CORS: allow requests from the same origin (your deployed domain) ──
