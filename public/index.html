@@ -383,9 +383,20 @@ function handleFiles(files){
     S.queue.push({id,filename:f.name});
     if(S.page==='upload'||S.user?.role==='agent')boot();
     runOCR(f).then(res=>{
+      // Build extracted_fields, filling agent_name from the logged-in user
+      // when OCR didn't find it (common on real uploads where the name isn't
+      // explicitly written on the form in a detectable way).
+      const ef={...res.extracted_fields};
+      if(!ef.agent_name) ef.agent_name=S.user?.name||'';
+
       const form={id,filename:f.name,ts:Date.now(),
-        agentId:S.user?.username||'',status:'pending',review:null,
-        ...res,...res.extracted_fields,extracted_fields:res.extracted_fields};
+        status:'pending',review:null,
+        ...res,      // department, confidence, transcription, summary, etc.
+        ...ef,       // flattened field values (subject, amount, date, …)
+        // These come AFTER the spreads so they are never overwritten:
+        agent_name:ef.agent_name,
+        agentId:S.user?.username||'',
+        extracted_fields:ef};
       S.forms.unshift(form);
       S.queue=S.queue.filter(q=>q.id!==id);
       updBadges();boot();
