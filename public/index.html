@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DocuSort AI</title>
+<title>HS-Parse AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -442,7 +442,7 @@ function loginHTML(){
   <div class="login-wrap">
     <div class="login-logo">
       <div class="sl-ico" style="margin:0 auto 10px;width:40px;height:40px;border-radius:10px"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
-      <div style="font-size:20px;font-weight:800;letter-spacing:-.4px">DocuSort AI</div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.4px">HS-Parse AI</div>
       <div style="font-size:12px;color:var(--t2);margin-top:3px">Form Intelligence Platform</div>
     </div>
     <div class="login-card">
@@ -580,7 +580,7 @@ function headShell(){
   <aside class="s-bar">
     <div class="sl-head">
       <div class="sl-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
-      <div><div class="sl-name">DocuSort AI</div><div class="sl-sub" style="color:${cfg.c};font-weight:600">${cfg.l} Head</div></div>
+      <div><div class="sl-name">HS-Parse AI</div><div class="sl-sub" style="color:${cfg.c};font-weight:600">${cfg.l} Head</div></div>
     </div>
     <nav class="sl-nav">
       <div class="sl-sec">Review Queue</div>
@@ -678,7 +678,7 @@ function submitReview(){
 function adminShell(){
   return `<div class="shell">
   <aside class="s-bar">
-    <div class="sl-head"><div class="sl-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div><div><div class="sl-name">DocuSort AI</div><div class="sl-sub">Form Intelligence</div></div></div>
+    <div class="sl-head"><div class="sl-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div><div><div class="sl-name">HS-Parse AI</div><div class="sl-sub">Form Intelligence</div></div></div>
     <nav class="sl-nav">
       <div class="sl-sec">Main</div>
       <div class="sl-it active" data-p="dashboard"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Overview</div>
@@ -874,7 +874,7 @@ function emailSummary(dept){
   const avgC=Math.round(forms.reduce((s,f)=>s+(f.confidence||0),0)/forms.length);
   const dr=dateRange(p),pl=pLabel(p),now=new Date().toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const agentLines=agents.map(([n,fs])=>`  • ${n.padEnd?n.padEnd(24):n}  ${fs.length} form${fs.length>1?'s':''}  —  ${fs.map(f=>f.reference_number||'—').join(', ')}`).join('\n');
-  const body=`DocuSort AI  |  ${pl.toUpperCase()} REPORT\nGenerated: ${now}\n${'─'.repeat(50)}\n\nDear ${cfg.l} Department Head,\n\nPERIOD     ${dr}\nDEPT       ${cfg.l}\nFORMS      ${forms.length}\nAGENTS     ${agents.length} unique\nCONFIDENCE Avg ${avgC}%\n\n${'─'.repeat(50)}\nAGENT BREAKDOWN\n${'─'.repeat(50)}\n${agentLines}\n${'─'.repeat(50)}\n\nDocuSort AI — Form Intelligence Platform`;
+  const body=`HS-Parse AI  |  ${pl.toUpperCase()} REPORT\nGenerated: ${now}\n${'─'.repeat(50)}\n\nDear ${cfg.l} Department Head,\n\nPERIOD     ${dr}\nDEPT       ${cfg.l}\nFORMS      ${forms.length}\nAGENTS     ${agents.length} unique\nCONFIDENCE Avg ${avgC}%\n\n${'─'.repeat(50)}\nAGENT BREAKDOWN\n${'─'.repeat(50)}\n${agentLines}\n${'─'.repeat(50)}\n\nHS-Parse AI — Form Intelligence Platform`;
   document.getElementById('m-ttl').textContent=pl+' Summary — '+cfg.l;
   document.getElementById('m-sub').innerHTML=`<span class="bdg ${cfg.bd}">${cfg.l}</span><span>·</span><span>${forms.length} forms</span>`;
   document.getElementById('m-body').innerHTML=`<div class="email-card"><div class="email-row"><div class="email-lbl">To:</div><div class="email-val">${dept.toLowerCase()}.head@company.com</div></div><div class="email-row"><div class="email-lbl">Re:</div><div class="email-val" style="font-weight:700">[${pl}] Summary — ${cfg.l}</div></div></div><pre class="email-body">${body}</pre><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-g" onclick="confirmSend('${dept}',${forms.length},${agents.length})"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Dispatch</button><button class="btn btn-o" onclick="closeModal()">Cancel</button></div>`;
@@ -886,7 +886,7 @@ function emailAllDepts(){
   const agents=new Set(forms.map(f=>f.agent_name||'?')).size;
   const depts=['FINANCE','ADMINISTRATIVE','EXECUTIVE'].filter(d=>forms.some(f=>f.department===d));
   const pl=pLabel(p),dr=dateRange(p),now=new Date().toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  const body=`DocuSort AI  |  ${pl.toUpperCase()} CONSOLIDATED\nGenerated: ${now}\n${'─'.repeat(50)}\n\nPERIOD   ${dr}\nFORMS    ${forms.length} total\nAGENTS   ${agents} unique\nDEPTS    ${depts.length} active\n\n${depts.map(d=>{const cfg=DC[d],df=forms.filter(f=>f.department===d),am={};df.forEach(f=>{const n=f.agent_name||'?';if(!am[n])am[n]=0;am[n]++});return`${cfg.l.toUpperCase()} (${df.length} forms)\n${Object.entries(am).map(([n,c])=>`  • ${n}: ${c} form${c>1?'s':''}`).join('\n')}`}).join('\n\n')}\n\n${'─'.repeat(50)}\nDocuSort AI — Form Intelligence Platform`;
+  const body=`HS-Parse AI  |  ${pl.toUpperCase()} CONSOLIDATED\nGenerated: ${now}\n${'─'.repeat(50)}\n\nPERIOD   ${dr}\nFORMS    ${forms.length} total\nAGENTS   ${agents} unique\nDEPTS    ${depts.length} active\n\n${depts.map(d=>{const cfg=DC[d],df=forms.filter(f=>f.department===d),am={};df.forEach(f=>{const n=f.agent_name||'?';if(!am[n])am[n]=0;am[n]++});return`${cfg.l.toUpperCase()} (${df.length} forms)\n${Object.entries(am).map(([n,c])=>`  • ${n}: ${c} form${c>1?'s':''}`).join('\n')}`}).join('\n\n')}\n\n${'─'.repeat(50)}\nHS-Parse AI — Form Intelligence Platform`;
   document.getElementById('m-ttl').textContent='Consolidated '+pl;
   document.getElementById('m-sub').innerHTML=`<span class="bdg bu">All Depts</span><span>·</span><span>${forms.length} forms</span>`;
   document.getElementById('m-body').innerHTML=`<div class="email-card"><div class="email-row"><div class="email-lbl">To:</div><div class="email-val">${depts.map(d=>DC[d].l.toLowerCase()+'.head@company.com').join(', ')}</div></div><div class="email-row"><div class="email-lbl">Re:</div><div class="email-val" style="font-weight:700">[${pl}] Consolidated Summary</div></div></div><pre class="email-body">${body}</pre><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-g" onclick="confirmSendAll(${forms.length},${agents})">Dispatch to All</button><button class="btn btn-o" onclick="closeModal()">Cancel</button></div>`;
@@ -895,7 +895,7 @@ function emailAllDepts(){
 function emailLegacy(dept){
   const cfg=DC[dept],forms=S.forms.filter(f=>f.department===dept);
   if(!forms.length){toast('No forms');return}
-  const body=`Session summary — ${cfg.l}\nForms: ${forms.length}\nAgents: ${[...new Set(forms.map(f=>f.agent_name||'?'))].join(', ')}\n\nDocuSort AI`;
+  const body=`Session summary — ${cfg.l}\nForms: ${forms.length}\nAgents: ${[...new Set(forms.map(f=>f.agent_name||'?'))].join(', ')}\n\nHS-Parse AI`;
   document.getElementById('m-ttl').textContent='Email — '+cfg.l;
   document.getElementById('m-sub').innerHTML=`<span class="bdg ${cfg.bd}">${cfg.l}</span>`;
   document.getElementById('m-body').innerHTML=`<div class="email-card"><div class="email-row"><div class="email-lbl">To:</div><div class="email-val">${dept.toLowerCase()}.head@company.com</div></div></div><pre class="email-body">${body}</pre><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-d" onclick="closeModal();toast('Email sent ✓')">Send</button><button class="btn btn-o" onclick="closeModal()">Cancel</button></div>`;
