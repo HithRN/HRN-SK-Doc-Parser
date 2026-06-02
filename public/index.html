@@ -535,7 +535,7 @@ function agentShell(){
         <div class="form-card-hd" onclick="toggleCard(${f.id})">
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.subject||f.filename}</div>
-            <div style="font-size:11px;color:var(--t2);margin-top:2px"><span class="mono">${f.reference_number||'—'}</span> · ${f.date||ftm(f.ts)} · <span style="color:${cfg.c};font-weight:600">${cfg.l}</span></div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px"><span class="mono" style="color:${f.reference_number?'inherit':'var(--t3)'}">${f.reference_number||('SYS-'+String(f.id).padStart(6,'0'))}</span> · ${f.date||ftm(f.ts)} · <span style="color:${cfg.c};font-weight:600">${cfg.l}</span></div>
           </div>
           <div>${stBadge}</div>
           <svg viewBox="0 0 24 24" class="fc-arrow" style="width:14px;height:14px;stroke:var(--t3);fill:none;stroke-width:2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -618,7 +618,17 @@ function headShell(){
         </div>
         ${displayForms.length===0?`<div class="empty"><div class="e-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3>No forms here</h3><p>Nothing to review in this category</p></div>`:
         `<div class="tw"><table class="dt"><thead><tr><th>Agent</th><th>Reference</th><th>Subject</th><th>Date</th><th>Status</th><th>Head Remark</th><th></th></tr></thead><tbody>
-        ${displayForms.map(f=>`<tr onclick="openReview(${f.id})"><td style="font-weight:500">${f.agent_name||'—'}</td><td class="mono" style="color:${cfg.c}">${f.reference_number||'—'}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.subject||'—'}</td><td class="t2">${f.date||'—'}</td><td>${statusBadge(f.status)}</td><td class="t2" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-style:italic">${f.review?.comment||'—'}</td><td onclick="event.stopPropagation()"><button class="btn btn-d btn-sm" onclick="openReview(${f.id})">${f.status==='pending'?'Review':'Update'}</button></td></tr>`).join('')}
+        ${displayForms.map(f=>{
+          // Fallback chain for each display field:
+          // Reference  → OCR value  → system ID (SYS-XXXXXX)
+          // Subject    → OCR value  → first sentence of AI summary → filename
+          // Date       → OCR value  → upload timestamp (always known)
+          const dispRef  = f.reference_number || ('SYS-'+String(f.id).padStart(6,'0'));
+          const dispSubj = f.subject || (f.summary ? f.summary.split('.')[0].trim() : '') || f.filename || '—';
+          const dispDate = f.date || ftm(f.ts);
+          const refColor = f.reference_number ? cfg.c : 'var(--t3)';
+          return `<tr onclick="openReview(${f.id})"><td style="font-weight:500">${f.agent_name||'—'}</td><td class="mono" style="color:${refColor}">${dispRef}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${dispSubj}</td><td class="t2">${dispDate}</td><td>${statusBadge(f.status)}</td><td class="t2" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-style:italic">${f.review?.comment||'—'}</td><td onclick="event.stopPropagation()"><button class="btn btn-d btn-sm" onclick="openReview(${f.id})">${f.status==='pending'?'Review':'Update'}</button></td></tr>`;
+        }).join('')}
         </tbody></table></div>`}
       </div>
     </div>
@@ -637,11 +647,11 @@ function openReview(id){
   S.reviewFormId=id;S.reviewAction=null;
   const af=Object.entries(f.extracted_fields||{}).filter(([,v])=>v&&v.trim());
   document.getElementById('m-ttl').textContent='Review Form';
-  document.getElementById('m-sub').innerHTML=`<span class="bdg ${cfg.bd}">${cfg.l}</span><span>·</span><span>${f.reference_number||f.filename}</span>`;
+  document.getElementById('m-sub').innerHTML=`<span class="bdg ${cfg.bd}">${cfg.l}</span><span>·</span><span>${f.reference_number||('SYS-'+String(f.id).padStart(6,'0'))}</span>`;
   document.getElementById('m-body').innerHTML=`
   ${f.status!=='pending'?`<div style="background:var(--bl);border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:var(--t2)"><strong style="color:var(--t1)">Previous review:</strong> ${statusBadge(f.status)}${f.review?.comment?' — "'+f.review.comment+'"':''}</div>`:''}
   <div style="background:var(--bg);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--t2);line-height:1.6">
-    <strong style="color:var(--t1)">Agent:</strong> ${f.agent_name||'—'} &nbsp;·&nbsp; <strong style="color:var(--t1)">Date:</strong> ${f.date||'—'} &nbsp;·&nbsp; <strong style="color:var(--t1)">Ref:</strong> ${f.reference_number||'—'}
+    <strong style="color:var(--t1)">Agent:</strong> ${f.agent_name||'—'} &nbsp;·&nbsp; <strong style="color:var(--t1)">Date:</strong> ${f.date||ftm(f.ts)} &nbsp;·&nbsp; <strong style="color:var(--t1)">Ref:</strong> ${f.reference_number||('SYS-'+String(f.id).padStart(6,'0'))}
     ${f.summary?'<br><br>'+f.summary:''}
   </div>
   ${af.length>0?`<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:8px">Form Details</div><div class="fg">${af.slice(0,6).map(([k,v])=>`<div class="fi"><div class="fi-lbl">${k.replace(/_/g,' ')}</div><div class="fi-val">${v}</div></div>`).join('')}</div></div>`:''}
@@ -778,7 +788,7 @@ function pgDash(){
   <div class="c-hd"><span class="c-ttl">All Forms</span><span class="c-sub">${tot} total</span></div>
   ${tot===0?`<div class="empty"><div class="e-ico"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3>No data</h3><p>Upload forms to populate</p></div>`:
   `<div class="tw"><table class="dt"><thead><tr><th>File</th><th>Department</th><th>Agent</th><th>Reference</th><th>Date</th><th>Status</th><th>Confidence</th></tr></thead><tbody>
-  ${S.forms.map(f=>{const cfg=DC[f.department]||DC.UNKNOWN;const c=f.confidence||0;return`<tr onclick="showDetail(${f.id})"><td style="font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.filename}</td><td><span class="bdg ${cfg.bd}">${cfg.l}</span></td><td class="t2">${f.agent_name||'—'}</td><td class="mono t2">${f.reference_number||'—'}</td><td class="t2">${f.date||'—'}</td><td>${statusBadge(f.status)}</td><td><div style="display:flex;align-items:center;gap:7px"><div class="pb"><div class="pf" style="width:${c}%;background:${c>=70?'var(--ok)':c>=50?'var(--fin)':'var(--danger)'}"></div></div><span class="mono">${c}%</span></div></td></tr>`}).join('')}
+  ${S.forms.map(f=>{const cfg=DC[f.department]||DC.UNKNOWN;const c=f.confidence||0;const dRef=f.reference_number||('SYS-'+String(f.id).padStart(6,'0'));const dDate=f.date||ftm(f.ts);return`<tr onclick="showDetail(${f.id})"><td style="font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.filename}</td><td><span class="bdg ${cfg.bd}">${cfg.l}</span></td><td class="t2">${f.agent_name||'—'}</td><td class="mono" style="color:${f.reference_number?'inherit':'var(--t3)'}">${dRef}</td><td class="t2">${dDate}</td><td>${statusBadge(f.status)}</td><td><div style="display:flex;align-items:center;gap:7px"><div class="pb"><div class="pf" style="width:${c}%;background:${c>=70?'var(--ok)':c>=50?'var(--fin)':'var(--danger)'}"></div></div><span class="mono">${c}%</span></div></td></tr>`}).join('')}
   </tbody></table></div>`}
 </div>`;
 }
@@ -804,7 +814,7 @@ function pgDept(dept){
   const lbl={amount:'Amount',transaction_type:'Transaction',employee_id:'Emp ID',request_type:'Request',priority_level:'Priority',decision_required:'Decision'};
   const ec=xC[dept]||[];
   return`<div class="card"><div class="tw"><table class="dt"><thead><tr><th>Reference</th><th>Agent</th><th>Subject</th>${ec.map(k=>`<th>${lbl[k]||k}</th>`).join('')}<th>Status</th><th>Confidence</th><th></th></tr></thead><tbody>
-  ${forms.map(f=>{const c=f.confidence||0;return`<tr onclick="showDetail(${f.id})"><td class="mono" style="color:${cfg.c}">${f.reference_number||'—'}</td><td style="font-weight:500">${f.agent_name||'—'}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.subject||'—'}</td>${ec.map(k=>`<td class="t2">${f[k]||'—'}</td>`).join('')}<td>${statusBadge(f.status)}</td><td><div style="display:flex;align-items:center;gap:6px"><div class="pb"><div class="pf" style="width:${c}%;background:${cfg.c}"></div></div><span class="mono">${c}%</span></div></td><td onclick="event.stopPropagation()"><button class="btn btn-o btn-sm" onclick="showDetail(${f.id})">View</button></td></tr>`}).join('')}
+  ${forms.map(f=>{const c=f.confidence||0;const dRef=f.reference_number||('SYS-'+String(f.id).padStart(6,'0'));const dSubj=f.subject||(f.summary?f.summary.split('.')[0].trim():'')||f.filename||'—';return`<tr onclick="showDetail(${f.id})"><td class="mono" style="color:${f.reference_number?cfg.c:'var(--t3)'}">${dRef}</td><td style="font-weight:500">${f.agent_name||'—'}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${dSubj}</td>${ec.map(k=>`<td class="t2">${f[k]||'—'}</td>`).join('')}<td>${statusBadge(f.status)}</td><td><div style="display:flex;align-items:center;gap:6px"><div class="pb"><div class="pf" style="width:${c}%;background:${cfg.c}"></div></div><span class="mono">${c}%</span></div></td><td onclick="event.stopPropagation()"><button class="btn btn-o btn-sm" onclick="showDetail(${f.id})">View</button></td></tr>`}).join('')}
   </tbody></table></div></div>`;
 }
 
@@ -822,7 +832,7 @@ function pgReports(){
 <div class="card"><div class="c-hd"><span class="c-ttl">Agent Log</span></div>
 ${tot===0?`<div class="empty"><div class="e-ico"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3>No data</h3></div>`:
 `<div class="tw"><table class="dt"><thead><tr><th>Agent</th><th>Dept</th><th>Reference</th><th>Subject</th><th>Date</th><th>Status</th></tr></thead><tbody>
-${S.forms.map(f=>{const cfg=DC[f.department]||DC.UNKNOWN;return`<tr onclick="showDetail(${f.id})"><td style="font-weight:500">${f.agent_name||'—'}</td><td><span class="bdg ${cfg.bd}">${cfg.l}</span></td><td class="mono t2">${f.reference_number||'—'}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.subject||'—'}</td><td class="t2">${f.date||ftm(f.ts)}</td><td>${statusBadge(f.status)}</td></tr>`}).join('')}
+${S.forms.map(f=>{const cfg=DC[f.department]||DC.UNKNOWN;const dRef=f.reference_number||('SYS-'+String(f.id).padStart(6,'0'));const dSubj=f.subject||(f.summary?f.summary.split('.')[0].trim():'')||f.filename||'—';return`<tr onclick="showDetail(${f.id})"><td style="font-weight:500">${f.agent_name||'—'}</td><td><span class="bdg ${cfg.bd}">${cfg.l}</span></td><td class="mono" style="color:${f.reference_number?'inherit':'var(--t3)'}">${dRef}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${dSubj}</td><td class="t2">${f.date||ftm(f.ts)}</td><td>${statusBadge(f.status)}</td></tr>`}).join('')}
 </tbody></table></div>`}
 </div></div>`;
 }
