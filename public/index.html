@@ -344,6 +344,7 @@ const MOCK = [
    key_terms:['WFH','remote work','employee','manager','approved'],
    transcription:'Administrative Form\nEmployee: Priya Nair  ID: EMP-0199\nDate: 01/06/2025  Ref: ADM-2025-201\nRequest: Work From Home\nDates: June 10-14\nApproved by: Manager'},
 ];
+  /*
 MOCK.forEach(m => {
   S.forms.push({...m, extracted_fields:{
     agent_name:m.agent_name,date:m.date,reference_number:m.reference_number,subject:m.subject,
@@ -352,6 +353,7 @@ MOCK.forEach(m => {
     priority_level:m.priority_level,decision_required:m.decision_required,recommendation:m.recommendation
   }});
 });
+*/
 
 // ══════════════════════════════════════
 // OCR ENGINE
@@ -367,7 +369,7 @@ async function runOCR(file){
   // ── Step 3: call backend proxy — API key is server-side ──
   const res=await fetch('/api/ocr',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mime,b64})
+    body:JSON.stringify({mime, b64, filename:file.name, agent_id:S.user?.username||'', agent_name:S.user?.name||''})
   });
   const d=await res.json();
   // ── Step 4: handle errors ──
@@ -389,15 +391,7 @@ function handleFiles(files){
       const ef={...res.extracted_fields};
       if(!ef.agent_name) ef.agent_name=S.user?.name||'';
 
-      const form={id,filename:f.name,ts:Date.now(),
-        status:'pending',review:null,
-        ...res,      // department, confidence, transcription, summary, etc.
-        ...ef,       // flattened field values (subject, amount, date, …)
-        // These come AFTER the spreads so they are never overwritten:
-        agent_name:ef.agent_name,
-        agentId:S.user?.username||'',
-        extracted_fields:ef};
-      S.forms.unshift(form);
+      S.forms.unshift(res);
       S.queue=S.queue.filter(q=>q.id!==id);
       updBadges();boot();
       toast('✓ '+f.name+' → '+(DC[res.department]?.l||'Unknown'));
@@ -416,8 +410,19 @@ function doLogin(){
   if(!user||user.pass!==p){if(err)err.style.display='block';return}
   S.user={username:u,...user};
   S.page='dashboard';S.headTab='all';
-  boot();
+  loadForms().then(boot);
 }
+
+async function loadForms(){
+  try{
+    const url=S.user?.role==='agent'
+      ?'/api/forms?agent_id='+encodeURIComponent(S.user.username)
+      :'/api/forms';
+    const r=await fetch(url);
+    if(r.ok) S.forms=await r.json();
+  }catch(e){ console.warn('loadForms failed',e); }
+}
+  
 function logout(){S.user=null;S.page='dashboard';S.headTab='all';S.log=[];boot()}
 function autofill(u,p){
   const eu=document.getElementById('l-u');const ep=document.getElementById('l-p');
@@ -681,10 +686,11 @@ function selAction(action){
   const sub=document.getElementById('rv-submit');
   if(sub){sub.disabled=false;sub.style.opacity='1';sub.style.cursor='pointer'}
 }
-function submitReview(){
+async function submitReview(){
   if(!S.reviewAction)return;
   const f=S.forms.find(x=>x.id==S.reviewFormId);if(!f)return;
   const comment=(document.getElementById('rv-comment')?.value||'').trim();
+  await fetch('/api/forms/'+f.id+'/review',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:S.reviewAction,comment,reviewer:S.user.name})});
   f.status=S.reviewAction;
   f.review={action:S.reviewAction,comment,reviewer:S.user.name,ts:Date.now()};
   closeModal();
@@ -993,7 +999,7 @@ function ftm(ts){const d=new Date(ts),now=new Date(),diff=(now-d)/1000;if(diff<6
 function statusBadge(s){const m={pending:'<span class="bdg st-pending">Pending</span>',approved:'<span class="bdg st-approved">Approved</span>',changes_requested:'<span class="bdg st-changes">Changes Requested</span>',rejected:'<span class="bdg st-rejected">Rejected</span>'};return m[s]||m.pending}
 function updBadges(){try{const bq=document.getElementById('b-q');if(bq)bq.textContent=S.queue.length||'0';const bf=document.getElementById('b-f');if(bf)bf.textContent=cntD('FINANCE')||'0';const ba=document.getElementById('b-a');if(ba)ba.textContent=cntD('ADMINISTRATIVE')||'0';const be=document.getElementById('b-e');if(be)be.textContent=cntD('EXECUTIVE')||'0';const bs=document.getElementById('b-s');if(bs)bs.textContent=S.log.length||'0'}catch(e){}}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200)}
-function clearAll(){if(!confirm('Clear all forms and reset demo?'))return;S.forms=[];S.log=[];updBadges();renderAdminPage();toast('Cleared')}
+function clearAll(){if(!confirm('Clear all forms and reset demo?'))return;fetch('/api/forms',{method:'DELETE'}).finally(()=>{S.forms=[];S.log=[];updBadges();renderAdminPage();toast('Cleared')})}
 
 // ══════════════════════════════════════
 // INIT
